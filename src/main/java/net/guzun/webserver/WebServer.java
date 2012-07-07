@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import net.guzun.webserver.http.HttpContext;
+import net.guzun.webserver.http.HttpHelper;
 import net.guzun.webserver.io.ContentProviderFactory;
 import net.guzun.webserver.processors.DefaultProcessor;
 import net.guzun.webserver.processors.GetProcessor;
@@ -39,20 +40,26 @@ public class WebServer implements Runnable {
      */
     public WebServer(String listenPort, String rootFolderPath) throws IOException {
 
-        ContentProviderFactory contentProviderFactory = new ContentProviderFactory();
+        initProcessors();
+        initServerSocket(listenPort, rootFolderPath);
+    }
 
+    /**
+     * Initializes content processors
+     */
+    private void initProcessors() {
+        ContentProviderFactory contentProviderFactory = new ContentProviderFactory();
+        HttpHelper httpHelper = new HttpHelper();
         HeaderProcessor headerProcessor = new HeaderProcessor();
-        GetProcessor getProcessor = new GetProcessor(contentProviderFactory);
-        PostMultiPartProcessor postMultiPartProcessor = new PostMultiPartProcessor();
-        DefaultProcessor defaultProcessor = new DefaultProcessor();
+        GetProcessor getProcessor = new GetProcessor(httpHelper, contentProviderFactory);
+        PostMultiPartProcessor postMultiPartProcessor = new PostMultiPartProcessor(httpHelper);
+        DefaultProcessor defaultProcessor = new DefaultProcessor(httpHelper);
 
         headerProcessor.setNextProcessor(getProcessor);
         getProcessor.setNextProcessor(postMultiPartProcessor);
         postMultiPartProcessor.setNextProcessor(defaultProcessor);
 
         requestProcessor = headerProcessor;
-
-        init(listenPort, rootFolderPath);
     }
 
     /**
@@ -62,7 +69,7 @@ public class WebServer implements Runnable {
      * @param rootFolderPath the root folder path
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private void init(String listenPort, String rootFolderPath) throws IOException {
+    private void initServerSocket(String listenPort, String rootFolderPath) throws IOException {
         try {
             port = Integer.parseInt(listenPort);
             rootFolder = rootFolderPath;

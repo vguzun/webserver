@@ -18,17 +18,17 @@ import net.guzun.webserver.io.ContentProviderFactory;
  */
 public class GetProcessor extends BaseProcessor {
 
-    /** The Constant BUFFER_SIZE. */
     private static final int BUFFER_SIZE = 4096;
-
-    /** The content provider factory. */
+    private HttpHelper httpHelper;
     private final ContentProviderFactory contentProviderFactory;
 
     /**
      * Instantiates a new gets the processor.
+     * @param httpHelper HttpHelper
      * @param contentProviderFactoryParam the content provider factory param
      */
-    public GetProcessor(ContentProviderFactory contentProviderFactoryParam) {
+    public GetProcessor(HttpHelper httpHelper, ContentProviderFactory contentProviderFactoryParam) {
+        this.httpHelper = httpHelper;
         this.contentProviderFactory = contentProviderFactoryParam;
     }
 
@@ -76,10 +76,10 @@ public class GetProcessor extends BaseProcessor {
      */
     private void displayNotFound(OutputStream outputStream) {
         PrintStream printStream = new PrintStream(outputStream, true);
-        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_NOT_FOUND, "text/html");
-        HttpHelper.writeHtmHead(printStream);
+        httpHelper.createResponseHeader(printStream, HttpConstants.HTTP_NOT_FOUND, "text/html");
+        httpHelper.writeHtmHead(printStream);
         printStream.print("<h1> 404 Resource not found</h1>");
-        HttpHelper.writeHtmTail(printStream);
+        httpHelper.writeHtmTail(printStream);
     }
 
     /**
@@ -92,7 +92,7 @@ public class GetProcessor extends BaseProcessor {
             throws RequestProcessingException {
         PrintStream printStream = new PrintStream(outputStream, true);
         String contentType = contentProvider.getContentType();
-        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_OK, contentType);
+        httpHelper.createResponseHeader(printStream, HttpConstants.HTTP_OK, contentType);
         byte[] buffer = new byte[BUFFER_SIZE];
         int len;
         try {
@@ -118,10 +118,10 @@ public class GetProcessor extends BaseProcessor {
             boolean parentPathEnabled) {
         PrintStream printStream = new PrintStream(outputStream, true);
 
-        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_OK, "text/html");
+        httpHelper.createResponseHeader(printStream, HttpConstants.HTTP_OK, "text/html");
         StringBuilder html = buildBody(contentProvider, parentPathEnabled);
-        HttpHelper.writeHtmHead(printStream);
-        HttpHelper.writeHtmTail(printStream);
+        httpHelper.writeHtmHead(printStream);
+        httpHelper.writeHtmTail(printStream);
         printStream.print(html.toString());
     }
 

@@ -18,6 +18,16 @@ import net.guzun.webserver.utils.ContentDisposition;
  */
 public class PostMultiPartProcessor extends BaseProcessor {
 
+    private HttpHelper httpHelper;
+
+    /**
+     * Instantiates a new gets the processor.
+     * @param httpHelper HttpHelper
+     */
+    public PostMultiPartProcessor(HttpHelper httpHelper) {
+        this.httpHelper = httpHelper;
+    }
+
     /*
      * (non-Javadoc)
      * @see
@@ -31,10 +41,10 @@ public class PostMultiPartProcessor extends BaseProcessor {
             processMultipartRequest(request);
             PrintStream printStream = new PrintStream(response.getOutputStream(), true);
 
-            HttpHelper.createResponseRedirect(request, printStream);
-            HttpHelper.writeHtmHead(printStream);
+            httpHelper.createResponseRedirect(request, printStream);
+            httpHelper.writeHtmHead(printStream);
             printStream.println("File uploaded successfully to continue <a href=\".\">click here></a>\r\n");
-            HttpHelper.writeHtmTail(printStream);
+            httpHelper.writeHtmTail(printStream);
 
         } else {
             super.process(request, response);
