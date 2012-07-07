@@ -13,94 +13,141 @@ import net.guzun.webserver.http.HttpResponse;
 import net.guzun.webserver.io.ContentProvider;
 import net.guzun.webserver.io.ContentProviderFactory;
 
+/**
+ * The Class GetProcessor.
+ */
 public class GetProcessor extends BaseProcessor {
-	private static final int BUFFER_SIZE = 4096;
-	private final ContentProviderFactory contentProviderFactory;
-	public GetProcessor(RequestProcessor nextProcessor, ContentProviderFactory contentProviderFactoryParam) {
-		super(nextProcessor);
-		this.contentProviderFactory = contentProviderFactoryParam;
-	}
 
-	@Override
-	public void process(HttpRequest request, HttpResponse response) throws RequestProcessingException {
-		if (request.getMethod().equals(HttpConstants.METHOD_GET)) {
-			writeResponse(request, response);
-		} else {
-			super.process(request, response);
-		}
-	}
+    /** The Constant BUFFER_SIZE. */
+    private static final int BUFFER_SIZE = 4096;
 
-	private void writeResponse(HttpRequest request, HttpResponse response) throws RequestProcessingException {
-		String absolutePath = request.getAbsolutPath();
-		OutputStream outputStream = response.getOutputStream();
-		
-		ContentProvider contentProvider = contentProviderFactory.getContentProvider(absolutePath);
-		if (contentProvider.exists()) {
-			if (contentProvider.isDirectory()) {
-				boolean parentPathEnabled = request.getUriPath().equals("/");
-				displayFolderContent(outputStream, contentProvider, parentPathEnabled);
-			} else {
-				displayFileContent(outputStream, contentProvider);
-			}
-		} else {
-			displayNotFound(outputStream);
-		}
-	}
+    /** The content provider factory. */
+    private final ContentProviderFactory contentProviderFactory;
 
-	private void displayNotFound(OutputStream outputStream) {
-	    PrintStream printStream = new PrintStream(outputStream, true);
-	    HttpHelper.createHeader(printStream, HttpConstants.HTTP_NOT_FOUND, "text/html");
-	    HttpHelper.WriteHtmHead(printStream);
-	    printStream.print("Resource not found");
-	    HttpHelper.WriteHtmTail(printStream);
+    /**
+     * Instantiates a new gets the processor.
+     * @param nextProcessor
+     *            the next processor
+     * @param contentProviderFactoryParam
+     *            the content provider factory param
+     */
+    public GetProcessor(RequestProcessor nextProcessor, ContentProviderFactory contentProviderFactoryParam) {
+        super(nextProcessor);
+        this.contentProviderFactory = contentProviderFactoryParam;
     }
 
-	private void displayFileContent(OutputStream outputStream, ContentProvider contentProvider) throws RequestProcessingException {
-	    PrintStream printStream = new PrintStream(outputStream, true);
-	    String contentType = contentProvider.getContentType();
-	    HttpHelper.createHeader(printStream, HttpConstants.HTTP_OK, contentType);
-	    byte[] buffer = new byte[BUFFER_SIZE]; 
-	    int len;
-	    try {
-	    	InputStream fileInputStream = contentProvider.getContentStream();
-
-	    	while ((len = fileInputStream.read(buffer)) != -1) {
-	    		outputStream.write(buffer, 0, len);
-	    	}
-
-	    	fileInputStream.close();
-	    } catch (IOException e) {
-	    	throw new RequestProcessingException(e);
-	    }
+    /*
+     * (non-Javadoc)
+     * @see
+     * net.guzun.webserver.processors.BaseProcessor#process(net.guzun.webserver
+     * .http.HttpRequest, net.guzun.webserver.http.HttpResponse)
+     */
+    @Override
+    public void process(HttpRequest request, HttpResponse response) throws RequestProcessingException {
+        if (request.getMethod().equals(HttpConstants.METHOD_GET)) {
+            writeResponse(request, response);
+        } else {
+            super.process(request, response);
+        }
     }
 
-	private void displayFolderContent(OutputStream outputStream, ContentProvider contentProvider, boolean parentPathEnabled) {
-		PrintStream printStream = new PrintStream(outputStream, true);
-	    
-	    HttpHelper.createHeader(printStream, HttpConstants.HTTP_OK, "text/html");
-	    HttpHelper.WriteHtmHead(printStream);
+    /**
+     * Write response.
+     * @param request  the request
+     * @param response the response
+     * @throws RequestProcessingException the request processing exception
+     */
+    private void writeResponse(HttpRequest request, HttpResponse response) throws RequestProcessingException {
+        String absolutePath = request.getAbsolutPath();
+        OutputStream outputStream = response.getOutputStream();
 
-	    StringBuilder html = new StringBuilder();
-	    html.append("<ul id=\"folders\">");
-	    
-	    String[] list = contentProvider.list();
-	    if (!parentPathEnabled) {
-	    	html.append("<li><a href=\"../\">&lt;..&gt;</a></li>");
-	    }
-	    for (String fileItem : list) {
-	    	ContentProvider childContent = contentProviderFactory.getContentProvider(contentProvider.getPath() + "/" + fileItem);
-	    	if (childContent.isDirectory()) {
-	    		html.append(String.format("<li><a href=\"%1$s/\">&lt;%1$s&gt;</a></li>", childContent.getName()));
-	    	} else {
-	    		html.append(String.format("<li><a href=\"%1$s\">%1$s</a></li>", childContent.getName()));
-	    	}
-	    }
-	    html.append("</ul>");
-	    html.append("<form action=\"#\" method=\"post\" enctype=\"multipart/form-data\">");
-	    html.append("<input type=\"file\" name=\"file\"/><br/>");
-	    html.append("<input type=\"submit\" name=\"submit\"/>"); 
-	    html.append("</form>");
-	    HttpHelper.WriteHtmTail(printStream);
-	    printStream.print(html.toString());
+        ContentProvider contentProvider = contentProviderFactory.getContentProvider(absolutePath);
+        if (contentProvider.exists()) {
+            if (contentProvider.isDirectory()) {
+                boolean parentPathEnabled = request.getUriPath().equals("/");
+                displayFolderContent(outputStream, contentProvider, parentPathEnabled);
+            } else {
+                displayFileContent(outputStream, contentProvider);
+            }
+        } else {
+            displayNotFound(outputStream);
+        }
+    }
+
+    /**
+     * Display not found.
+     * @param outputStream the output stream
+     */
+    private void displayNotFound(OutputStream outputStream) {
+        PrintStream printStream = new PrintStream(outputStream, true);
+        HttpHelper.createHeader(printStream, HttpConstants.HTTP_NOT_FOUND, "text/html");
+        HttpHelper.writeHtmHead(printStream);
+        printStream.print("Resource not found");
+        HttpHelper.writeHtmTail(printStream);
+    }
+
+    /**
+     * Display file content.
+     * @param outputStream the output stream
+     * @param contentProvider the content provider
+     * @throws RequestProcessingException the request processing exception
+     */
+    private void displayFileContent(OutputStream outputStream, ContentProvider contentProvider)
+            throws RequestProcessingException {
+        PrintStream printStream = new PrintStream(outputStream, true);
+        String contentType = contentProvider.getContentType();
+        HttpHelper.createHeader(printStream, HttpConstants.HTTP_OK, contentType);
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int len;
+        try {
+            InputStream fileInputStream = contentProvider.getContentStream();
+
+            while ((len = fileInputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+
+            fileInputStream.close();
+        } catch (IOException e) {
+            throw new RequestProcessingException(e);
+        }
+    }
+
+    /**
+     * Display folder content.
+     * @param outputStream the output stream
+     * @param contentProvider the content provider
+     * @param parentPathEnabled the parent path enabled
+     */
+    private void displayFolderContent(OutputStream outputStream, ContentProvider contentProvider,
+            boolean parentPathEnabled) {
+        PrintStream printStream = new PrintStream(outputStream, true);
+
+        HttpHelper.createHeader(printStream, HttpConstants.HTTP_OK, "text/html");
+        HttpHelper.writeHtmHead(printStream);
+
+        StringBuilder html = new StringBuilder();
+        html.append("<ul id=\"folders\">");
+
+        String[] list = contentProvider.list();
+        if (!parentPathEnabled) {
+            html.append("<li><a href=\"../\">&lt;..&gt;</a></li>");
+        }
+
+        for (String fileItem : list) {
+            ContentProvider childContent = contentProviderFactory.getContentProvider(contentProvider.getPath() + "/"
+                    + fileItem);
+            if (childContent.isDirectory()) {
+                html.append(String.format("<li><a href=\"%1$s/\">&lt;%1$s&gt;</a></li>", childContent.getName()));
+            } else {
+                html.append(String.format("<li><a href=\"%1$s\">%1$s</a></li>", childContent.getName()));
+            }
+        }
+        html.append("</ul>");
+        html.append("<form action=\"#\" method=\"post\" enctype=\"multipart/form-data\">");
+        html.append("<input type=\"file\" name=\"file\"/><br/>");
+        html.append("<input type=\"submit\" name=\"submit\"/>");
+        html.append("</form>");
+        HttpHelper.writeHtmTail(printStream);
+        printStream.print(html.toString());
     }
 }
