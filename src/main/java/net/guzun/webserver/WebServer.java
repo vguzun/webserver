@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 public class WebServer implements Runnable {
     private static Logger logger = Logger.getLogger(WebServer.class);
     private ServerSocketChannel serverSocketChannel;
+    private HttpHelper httpHelper;
     private int port;
     private String rootFolder;
     private volatile boolean isStarted;
@@ -49,7 +50,7 @@ public class WebServer implements Runnable {
      */
     private void initProcessors() {
         ContentProviderFactory contentProviderFactory = new ContentProviderFactory();
-        HttpHelper httpHelper = new HttpHelper();
+        httpHelper = new HttpHelper();
         HeaderProcessor headerProcessor = new HeaderProcessor();
         GetProcessor getProcessor = new GetProcessor(httpHelper, contentProviderFactory);
         PostMultiPartProcessor postMultiPartProcessor = new PostMultiPartProcessor(httpHelper);
@@ -114,7 +115,7 @@ public class WebServer implements Runnable {
                 SocketChannel clientSocket = serverSocketChannel.accept();
                 if (clientSocket != null) {
                     System.out.println("connection request received");
-                    HttpContext connection = new HttpContext(rootFolder, requestProcessor, clientSocket);
+                    HttpContext connection = new HttpContext(rootFolder, requestProcessor, clientSocket, httpHelper);
                     executor.execute(connection);
                 }
             } catch (AsynchronousCloseException e) {

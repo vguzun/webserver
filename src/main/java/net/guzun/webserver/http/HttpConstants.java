@@ -11,6 +11,7 @@ public class HttpConstants {
     public static final String HTTP_MOVED = "302";
     public static final String HTTP_NOT_FOUND = "404";
     public static final String HTTP_METHOD_NOT_ALLOWED = "405";
+    public static final String HTTP_INTERNAL_ERROR = "500";
 
     public static final String HOST_ATTRIBUTE = "Host";
 

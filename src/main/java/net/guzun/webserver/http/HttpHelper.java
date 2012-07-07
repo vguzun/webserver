@@ -62,4 +62,15 @@ public class HttpHelper {
         printStream.println(request.getPath());
         printStream.println();
     }
+
+    /**
+     * Send a internal server error
+     * @param printStream stream to output
+     */
+    public void createResponseInternallError(PrintStream printStream) {
+        createResponseHeader(printStream, HttpConstants.HTTP_INTERNAL_ERROR, "text/html");
+        writeHtmHead(printStream);
+        printStream.println("<h1>500 Server Internall Error occured</h1>");
+        writeHtmTail(printStream);
+    }
 }

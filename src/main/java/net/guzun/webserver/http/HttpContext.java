@@ -17,6 +17,7 @@ public class HttpContext implements Runnable {
     private static Logger logger = Logger.getLogger(HttpContext.class);
     private SocketChannel clientSocketChannel;
     private RequestProcessor requestProcessor;
+    private HttpHelper httpHelper;
     private final String absolutePath;
 
     /**
@@ -25,12 +26,14 @@ public class HttpContext implements Runnable {
      * @param absolutePathParam the absolute path param
      * @param requestProcessorParam the request processor param
      * @param clientSocketChannelParam the client socket channel param
+     * @param httpHelper http helper utility class
      */
     public HttpContext(String absolutePathParam, RequestProcessor requestProcessorParam,
-            SocketChannel clientSocketChannelParam) {
+            SocketChannel clientSocketChannelParam, HttpHelper httpHelper) {
         this.absolutePath = absolutePathParam;
         this.clientSocketChannel = clientSocketChannelParam;
         this.requestProcessor = requestProcessorParam;
+        this.httpHelper = httpHelper;
     }
 
     /**
@@ -48,8 +51,9 @@ public class HttpContext implements Runnable {
 
             try {
                 requestProcessor.process(request, response);
-            } catch (Exception ex) {
-                logger.error("An error occured during processing error");
+            } catch (Throwable ex) {
+                logger.error("Internal server error occured", ex);
+                httpHelper.createResponseInternallError(outputStream);
 
             }
         } catch (IOException e) {
