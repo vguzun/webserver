@@ -11,7 +11,7 @@ import net.guzun.webserver.http.HttpHelper;
 import net.guzun.webserver.http.HttpRequest;
 import net.guzun.webserver.http.HttpResponse;
 import net.guzun.webserver.io.ContentProvider;
-import net.guzun.webserver.io.ContentProviderFactory;
+import net.guzun.webserver.io.ResourcesFactory;
 
 /**
  * The Class GetProcessor.
@@ -20,16 +20,16 @@ public class GetProcessor extends BaseProcessor {
 
     private static final int BUFFER_SIZE = 4096;
     private HttpHelper httpHelper;
-    private final ContentProviderFactory contentProviderFactory;
+    private final ResourcesFactory resourcesFactory;
 
     /**
      * Instantiates a new gets the processor.
      * @param httpHelper HttpHelper
-     * @param contentProviderFactoryParam the content provider factory param
+     * @param resourcesFactory resources factory param
      */
-    public GetProcessor(HttpHelper httpHelper, ContentProviderFactory contentProviderFactoryParam) {
+    public GetProcessor(HttpHelper httpHelper, ResourcesFactory resourcesFactory) {
         this.httpHelper = httpHelper;
-        this.contentProviderFactory = contentProviderFactoryParam;
+        this.resourcesFactory = resourcesFactory;
     }
 
     /*
@@ -57,7 +57,7 @@ public class GetProcessor extends BaseProcessor {
         String absolutePath = request.getAbsolutPath();
         OutputStream outputStream = response.getOutputStream();
 
-        ContentProvider contentProvider = contentProviderFactory.getContentProvider(absolutePath);
+        ContentProvider contentProvider = resourcesFactory.getContentProvider(absolutePath);
         if (contentProvider.exists()) {
             if (contentProvider.isDirectory()) {
                 boolean parentPathEnabled = request.getUriPath().equals("/");
@@ -142,8 +142,8 @@ public class GetProcessor extends BaseProcessor {
         }
 
         for (String fileItem : list) {
-            ContentProvider childContent = contentProviderFactory.getContentProvider(contentProvider.getPath() + "/"
-                    + fileItem);
+            String pathToResource = contentProvider.getPath() + "/"  + fileItem;
+            ContentProvider childContent = resourcesFactory.getContentProvider(pathToResource);
             if (childContent.isDirectory()) {
                 html.append(String.format("<li><a href=\"%1$s/\">&lt;%1$s&gt;</a></li>", childContent.getName()));
             } else {

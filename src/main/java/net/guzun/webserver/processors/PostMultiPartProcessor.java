@@ -1,8 +1,8 @@
 package net.guzun.webserver.processors;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 import net.guzun.webserver.exceptions.BadInputStreamException;
@@ -11,6 +11,7 @@ import net.guzun.webserver.http.HttpHelper;
 import net.guzun.webserver.http.HttpRequest;
 import net.guzun.webserver.http.HttpResponse;
 import net.guzun.webserver.http.HttpStreamReader;
+import net.guzun.webserver.io.ResourcesFactory;
 import net.guzun.webserver.utils.ContentDisposition;
 
 /**
@@ -19,13 +20,16 @@ import net.guzun.webserver.utils.ContentDisposition;
 public class PostMultiPartProcessor extends BaseProcessor {
 
     private HttpHelper httpHelper;
+    private ResourcesFactory resourcesFactory;
 
     /**
      * Instantiates a new gets the processor.
      * @param httpHelper HttpHelper
+     * @param resourcesFactory resources factory
      */
-    public PostMultiPartProcessor(HttpHelper httpHelper) {
+    public PostMultiPartProcessor(HttpHelper httpHelper, ResourcesFactory resourcesFactory) {
         this.httpHelper = httpHelper;
+        this.resourcesFactory = resourcesFactory;
     }
 
     /*
@@ -93,7 +97,8 @@ public class PostMultiPartProcessor extends BaseProcessor {
             ContentDisposition contentDisposition = new ContentDisposition(headers[1]);
             String fileName = contentDisposition.getFileName();
             if (fileName != null) {
-                FileOutputStream fstream = new FileOutputStream(request.getAbsolutPath() + fileName);
+                String filePath = request.getAbsolutPath() + fileName;
+                OutputStream fstream = resourcesFactory.createOutputStream(filePath);
                 data.writeTo(fstream);
                 fstream.close();
             }

@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 
 import net.guzun.webserver.http.HttpContext;
 import net.guzun.webserver.http.HttpHelper;
-import net.guzun.webserver.io.ContentProviderFactory;
+import net.guzun.webserver.io.ResourcesFactory;
 import net.guzun.webserver.processors.DefaultProcessor;
 import net.guzun.webserver.processors.GetProcessor;
 import net.guzun.webserver.processors.HeaderProcessor;
@@ -49,11 +49,11 @@ public class WebServer implements Runnable {
      * Initializes content processors
      */
     private void initProcessors() {
-        ContentProviderFactory contentProviderFactory = new ContentProviderFactory();
+        ResourcesFactory resourcesFactory = new ResourcesFactory();
         httpHelper = new HttpHelper();
         HeaderProcessor headerProcessor = new HeaderProcessor();
-        GetProcessor getProcessor = new GetProcessor(httpHelper, contentProviderFactory);
-        PostMultiPartProcessor postMultiPartProcessor = new PostMultiPartProcessor(httpHelper);
+        GetProcessor getProcessor = new GetProcessor(httpHelper, resourcesFactory);
+        PostMultiPartProcessor postMultiPartProcessor = new PostMultiPartProcessor(httpHelper, resourcesFactory);
         DefaultProcessor defaultProcessor = new DefaultProcessor(httpHelper);
 
         headerProcessor.setNextProcessor(getProcessor);
