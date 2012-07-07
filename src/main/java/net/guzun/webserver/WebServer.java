@@ -23,7 +23,7 @@ public class  WebServer implements Runnable {
 	private int port;
 	private String rootFolder;
 	private volatile boolean isStarted;
-	private RequestProcessor requestProcessor = new HeaderProcessor(new PostProcessor(new GetProcessor(new PostMultiPartProcessor(null))));
+	private RequestProcessor requestProcessor = new HeaderProcessor(new PostMultiPartProcessor((new PostProcessor(new GetProcessor(null)))));
 	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	public WebServer(String listenPort, String rootFolder) throws IOException {

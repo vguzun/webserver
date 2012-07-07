@@ -7,8 +7,9 @@ import java.io.PrintStream;
 
 import net.guzun.webserver.http.HttpRequest;
 import net.guzun.webserver.http.HttpResponse;
+import net.guzun.webserver.http.HttpStreamReader;
 
-import org.apache.commons.fileupload.MultipartStream;
+import org.apache.commons.fileupload.MultipartStream.IllegalBoundaryException;
 import org.apache.commons.fileupload.MultipartStream.MalformedStreamException;
 
 public class PostMultiPartProcessor extends BaseProcessor {
@@ -20,34 +21,29 @@ public class PostMultiPartProcessor extends BaseProcessor {
 	public void process(HttpRequest request, HttpResponse response) {
 
 		if (request.isMultipart()) {
-			@SuppressWarnings("deprecation")
-			MultipartStream multipartStream = new MultipartStream(request.getInputStream(), request.getBoundary());
+			HttpStreamReader inputStream = request.getInputStream();
+			inputStream.upgradeToMultipart(request.getBoundary());
+
 			boolean nextPart;
 			try {
 				nextPart = true;
 				while (nextPart) {
-					String headersString = multipartStream.readHeaders();
+					// multipartStream.skipPreamble();
+					String headersString = inputStream.readHeaders();
 					String[] headers = headersString.split("\r\n");
+					ByteArrayOutputStream data = new ByteArrayOutputStream();
+					inputStream.readBody(data);
 					if (headers.length > 1) {
 						ContentDisposition contentDisposition = new ContentDisposition(headers[1]);
 
 						String fileName = contentDisposition.getFileName();
 						if (fileName != null) {
-							ByteArrayOutputStream data = new ByteArrayOutputStream();
-							multipartStream.readBodyData(data);
 							FileOutputStream fstream = new FileOutputStream(request.getAbsolutPath() + fileName);
 							data.writeTo(fstream);
 							fstream.close();
-							nextPart = multipartStream.readBoundary();
-							continue;
 						}
 					}
-					if (request.getInputStream().available() > 0) {
-						multipartStream.discardBodyData();
-						nextPart = multipartStream.readBoundary();
-					} else {
-						break;
-					}
+					nextPart = inputStream.readBoundary();
 				}
 			} catch (MalformedStreamException e) {
 				System.err.print("Mailformed stream");
@@ -55,13 +51,14 @@ public class PostMultiPartProcessor extends BaseProcessor {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 			PrintStream printStream = new PrintStream(response.getOutputStream(), true);
-			StringBuilder html = new StringBuilder();
-			html.append("HTTP/1.1 302 Found\r\n");
-			html.append("Location: " + request.getAbsolutPath());
-			printStream.append(html.toString());
-			printStream.flush();
-			printStream.close();
+			printStream.println("HTTP/1.1 200 OK");
+			printStream.println();
+			// printStream.flush();
+			// printStream.close();
+		} else {
+			super.process(request, response);
 		}
 
 	}

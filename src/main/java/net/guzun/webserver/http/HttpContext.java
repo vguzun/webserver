@@ -1,6 +1,7 @@
 package net.guzun.webserver.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
@@ -25,7 +26,8 @@ public class HttpContext implements Runnable {
 			Socket clientSocket = clientSocketChannel.socket();
 			outputStream = new PrintStream(clientSocket.getOutputStream(), true);
 			
-            HttpRequest request = new HttpRequest(absolutePath, clientSocket.getInputStream());
+            InputStream inputStream = clientSocket.getInputStream();
+			HttpRequest request = new HttpRequest(absolutePath, inputStream);
             HttpResponse response = new HttpResponse(outputStream);
             requestProcessor.process(request, response);
         } catch (IOException e1) {

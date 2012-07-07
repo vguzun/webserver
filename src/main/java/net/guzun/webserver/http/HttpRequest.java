@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class HttpRequest {
-	private InputStream inputStream;
+	private HttpStreamReader inputStream;
     private String rootPath;
     private String method;
     private String path;
@@ -15,7 +15,7 @@ public class HttpRequest {
     
     public HttpRequest(String rootPath, InputStream inputStream) {
     	this.rootPath = rootPath;
-    	this.inputStream = inputStream;
+    	this.inputStream = new HttpStreamReader(inputStream);
     	
     }
     
@@ -86,19 +86,18 @@ public class HttpRequest {
 		
 	}
 	
+	public String getAbsolutPath() {
+	    return getRootPath() + getUriPath();
+    }
+
+	public HttpStreamReader getInputStream() {
+	    return inputStream;
+    }
+
 	public byte[] getBoundary() {
 		String contentType = getAttribute("Content-Type");
 	    int boundaryIndex = contentType.indexOf("boundary=");
 	    byte[] boundary = (contentType.substring(boundaryIndex + 9)).getBytes();
 	    return boundary;
     }
-
-	public String getAbsolutPath() {
-	    return getRootPath() + getUriPath();
-    }
-
-	public InputStream getInputStream() {
-	    return inputStream;
-    }
-
 }
