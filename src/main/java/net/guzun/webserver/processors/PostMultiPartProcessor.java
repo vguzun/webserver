@@ -5,30 +5,26 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import net.guzun.webserver.exceptions.RequestProcessingException;
 import net.guzun.webserver.http.HttpRequest;
 import net.guzun.webserver.http.HttpResponse;
 import net.guzun.webserver.http.HttpStreamReader;
-
-import org.apache.commons.fileupload.MultipartStream.IllegalBoundaryException;
-import org.apache.commons.fileupload.MultipartStream.MalformedStreamException;
+import net.guzun.webserver.utils.ContentDisposition;
 
 public class PostMultiPartProcessor extends BaseProcessor {
+	
 	public PostMultiPartProcessor(RequestProcessor nextProcessor) {
 		super(nextProcessor);
 	}
 
 	@Override
-	public void process(HttpRequest request, HttpResponse response) {
-
+	public void process(HttpRequest request, HttpResponse response) throws RequestProcessingException {
 		if (request.isMultipart()) {
 			HttpStreamReader inputStream = request.getInputStream();
 			inputStream.upgradeToMultipart(request.getBoundary());
 
-			boolean nextPart;
 			try {
-				nextPart = true;
-				while (nextPart) {
-					// multipartStream.skipPreamble();
+				do {
 					String headersString = inputStream.readHeaders();
 					String[] headers = headersString.split("\r\n");
 					ByteArrayOutputStream data = new ByteArrayOutputStream();
@@ -43,20 +39,16 @@ public class PostMultiPartProcessor extends BaseProcessor {
 							fstream.close();
 						}
 					}
-					nextPart = inputStream.readBoundary();
-				}
-			} catch (MalformedStreamException e) {
-				System.err.print("Mailformed stream");
+					
+				} while (inputStream.readBoundary());
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RequestProcessingException(e);
 			}
 
 			PrintStream printStream = new PrintStream(response.getOutputStream(), true);
-			printStream.println("HTTP/1.1 200 OK");
-			printStream.println();
-			// printStream.flush();
-			// printStream.close();
+			printStream.println("HTTP/1.1 302 Moved Temporarily\r\n");
+			printStream.println("Location: http://www.yahoo.com/\r\n");
+			printStream.println("\r\n\r\n\r\n");
 		} else {
 			super.process(request, response);
 		}

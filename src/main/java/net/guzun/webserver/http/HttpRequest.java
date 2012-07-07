@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class HttpRequest {
+	private static final String BOUNDARY_ATTRIBUTE = "boundary=";
 	private HttpStreamReader inputStream;
     private String rootPath;
     private String method;
@@ -16,7 +17,6 @@ public class HttpRequest {
     public HttpRequest(String rootPath, InputStream inputStream) {
     	this.rootPath = rootPath;
     	this.inputStream = new HttpStreamReader(inputStream);
-    	
     }
     
     public String getMethod() {
@@ -83,7 +83,6 @@ public class HttpRequest {
 		}
 		
 		return true;
-		
 	}
 	
 	public String getAbsolutPath() {
@@ -96,8 +95,8 @@ public class HttpRequest {
 
 	public byte[] getBoundary() {
 		String contentType = getAttribute("Content-Type");
-	    int boundaryIndex = contentType.indexOf("boundary=");
-	    byte[] boundary = (contentType.substring(boundaryIndex + 9)).getBytes();
+	    int boundaryIndex = contentType.indexOf(BOUNDARY_ATTRIBUTE);
+	    byte[] boundary = (contentType.substring(boundaryIndex + BOUNDARY_ATTRIBUTE.length())).getBytes();
 	    return boundary;
     }
 }

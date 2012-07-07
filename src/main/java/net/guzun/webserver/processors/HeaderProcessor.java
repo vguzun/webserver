@@ -1,10 +1,9 @@
 package net.guzun.webserver.processors;
 
+import net.guzun.webserver.exceptions.RequestProcessingException;
 import net.guzun.webserver.http.HttpRequest;
 import net.guzun.webserver.http.HttpResponse;
 import net.guzun.webserver.http.HttpStreamReader;
-
-import org.apache.commons.fileupload.MultipartStream.MalformedStreamException;
 
 public class HeaderProcessor extends BaseProcessor {
 
@@ -13,19 +12,23 @@ public class HeaderProcessor extends BaseProcessor {
 	}
 
 	@Override
-	public void process(HttpRequest request, HttpResponse response) {
+	public void process(HttpRequest request, HttpResponse response) throws RequestProcessingException {
 		try {
 			HttpStreamReader headersReader = request.getInputStream();
 			String headersString = headersReader.readHeaders();
 			String[] headers = headersString.split("\r\n");
 			processtHeadTitle(request, headers[0]);
-			
-			// Iterating all header lines except the last, as it is an empty line
-			for (int i = 1; i < headers.length - 1; i++) { 
-				processHeaderItem(request, headers[i]);
+
+			// Iterating all header lines except the last, as it is an empty
+			// line
+			for (int i = 1; i < headers.length; i++) {
+				String line = headers[i];
+				if (!line.isEmpty()) {
+					processHeaderItem(request, line);
+				}
 			}
-		} catch (MalformedStreamException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new RequestProcessingException(e);
 		}
 
 		super.process(request, response);
@@ -44,6 +47,4 @@ public class HeaderProcessor extends BaseProcessor {
 		String value = line.substring(separatorIndex + 2);
 		request.addAtribute(name, value);
 	}
-
-	
 }

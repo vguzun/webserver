@@ -9,9 +9,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import net.guzun.webserver.http.HttpContext;
+import net.guzun.webserver.io.ContentProviderFactory;
+import net.guzun.webserver.processors.DefaultProcessor;
 import net.guzun.webserver.processors.GetProcessor;
 import net.guzun.webserver.processors.HeaderProcessor;
-import net.guzun.webserver.processors.PostProcessor;
 import net.guzun.webserver.processors.PostMultiPartProcessor;
 import net.guzun.webserver.processors.RequestProcessor;
 
@@ -23,7 +24,7 @@ public class  WebServer implements Runnable {
 	private int port;
 	private String rootFolder;
 	private volatile boolean isStarted;
-	private RequestProcessor requestProcessor = new HeaderProcessor(new PostMultiPartProcessor((new PostProcessor(new GetProcessor(null)))));
+	private RequestProcessor requestProcessor = new HeaderProcessor(new PostMultiPartProcessor((new GetProcessor(new DefaultProcessor(null), new ContentProviderFactory()))));
 	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	public WebServer(String listenPort, String rootFolder) throws IOException {
@@ -53,7 +54,7 @@ public class  WebServer implements Runnable {
 		try {
 			serverSocketChannel.close();
 		} catch (IOException e) {
-			System.out.println("Socket is closed");
+			logger.error("Error on closing server socket", e);
 		}
 	}
 
@@ -69,13 +70,10 @@ public class  WebServer implements Runnable {
 					executor.execute(connection);
 				}
 			} catch (AsynchronousCloseException e) {
-				
-			} catch(IOException e) {
+				logger.info("Asynchronose close");
+			} catch (IOException e) {
 				
 			}
 		}
 	}
-
-	
-
 }
