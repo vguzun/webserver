@@ -13,14 +13,6 @@ import net.guzun.webserver.http.HttpResponse;
  */
 public class DefaultProcessor extends BaseProcessor {
 
-    /**
-     * Instantiates a new default processor.
-     * @param nextProcessor the next processor
-     */
-    public DefaultProcessor(RequestProcessor nextProcessor) {
-        super(nextProcessor);
-    }
-
     /*
      * (non-Javadoc)
      * @see
@@ -30,9 +22,11 @@ public class DefaultProcessor extends BaseProcessor {
     @Override
     public void process(HttpRequest request, HttpResponse response) throws RequestProcessingException {
         PrintStream printStream = new PrintStream(response.getOutputStream());
-        HttpHelper.createHeader(printStream, HttpConstants.HTTP_METHOD_NOT_ALLOWED, "text/html");
+        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_METHOD_NOT_ALLOWED, "text/html");
+        HttpHelper.writeHtmHead(printStream);
         printStream.append("<h1>405 Method is not allowed</h1>");
         printStream.append("Method is not implemented yet");
+        HttpHelper.writeHtmTail(printStream);
     }
 
 }

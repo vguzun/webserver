@@ -12,6 +12,8 @@ public class HttpConstants {
     public static final String HTTP_NOT_FOUND = "404";
     public static final String HTTP_METHOD_NOT_ALLOWED = "405";
 
+    public static final String HOST_ATTRIBUTE = "Host";
+
     /**
      * Default constructor
      */

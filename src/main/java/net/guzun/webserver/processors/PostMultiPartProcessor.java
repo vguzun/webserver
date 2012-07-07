@@ -5,7 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import net.guzun.webserver.exceptions.BadInputStreamException;
 import net.guzun.webserver.exceptions.RequestProcessingException;
+import net.guzun.webserver.http.HttpHelper;
 import net.guzun.webserver.http.HttpRequest;
 import net.guzun.webserver.http.HttpResponse;
 import net.guzun.webserver.http.HttpStreamReader;
@@ -15,14 +17,6 @@ import net.guzun.webserver.utils.ContentDisposition;
  * The Class PostMultiPartProcessor.
  */
 public class PostMultiPartProcessor extends BaseProcessor {
-
-    /**
-     * Instantiates a new post multi part processor.
-     * @param nextProcessor the next processor
-     */
-    public PostMultiPartProcessor(RequestProcessor nextProcessor) {
-        super(nextProcessor);
-    }
 
     /*
      * (non-Javadoc)
@@ -34,37 +28,65 @@ public class PostMultiPartProcessor extends BaseProcessor {
     public void process(HttpRequest request, HttpResponse response) throws RequestProcessingException {
 
         if (request.isMultipart()) {
-            HttpStreamReader inputStream = request.getInputStream();
-            inputStream.upgradeToMultipart(request.getBoundary());
-
-            try {
-                do {
-                    String headersString = inputStream.readHeaders();
-                    String[] headers = headersString.split("\r\n");
-                    ByteArrayOutputStream data = new ByteArrayOutputStream();
-                    inputStream.readBody(data);
-                    if (headers.length > 1) {
-                        ContentDisposition contentDisposition = new ContentDisposition(headers[1]);
-                        String fileName = contentDisposition.getFileName();
-                        if (fileName != null) {
-                            FileOutputStream fstream = new FileOutputStream(request.getAbsolutPath() + fileName);
-                            data.writeTo(fstream);
-                            fstream.close();
-                        }
-                    }
-
-                } while (inputStream.readBoundary());
-            } catch (IOException e) {
-                throw new RequestProcessingException(e);
-            }
-
+            processMultipartRequest(request);
             PrintStream printStream = new PrintStream(response.getOutputStream(), true);
-            printStream.println("HTTP/1.1 302 Moved Temporarily\r\n");
-            printStream.println("Location: http://www.yahoo.com/\r\n");
-            printStream.println("\r\n\r\n\r\n");
+
+            HttpHelper.createResponseRedirect(request, printStream);
+            HttpHelper.writeHtmHead(printStream);
+            printStream.println("File uploaded successfully to continue <a href=\".\">click here></a>\r\n");
+            HttpHelper.writeHtmTail(printStream);
+
         } else {
             super.process(request, response);
         }
 
+    }
+
+    /**
+     * Process multipart request.
+     * @param request the request
+     * @throws BadInputStreamException the bad input stream exception
+     * @throws RequestProcessingException the request processing exception
+     */
+    private void processMultipartRequest(HttpRequest request) throws BadInputStreamException,
+            RequestProcessingException {
+        HttpStreamReader inputStream = request.getInputStream();
+        inputStream.upgradeToMultipart(request.getBoundary());
+
+        try {
+
+            do {
+                processMultipartItem(request, inputStream);
+            } while (inputStream.readBoundary());
+
+        } catch (IOException e) {
+            throw new RequestProcessingException(e);
+        }
+    }
+
+    /**
+     * Process multipart item.
+     * @param request the request
+     * @param inputStream the input stream
+     * @throws BadInputStreamException the bad input stream exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    private void processMultipartItem(HttpRequest request, HttpStreamReader inputStream)
+            throws BadInputStreamException, IOException {
+        String headersString = inputStream.readHeaders();
+        String[] headers = headersString.split("\r\n");
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        inputStream.readBody(data);
+        // If there are more then 1 headers this means that it is a file content
+        // all others are ignored now
+        if (headers.length > 1) {
+            ContentDisposition contentDisposition = new ContentDisposition(headers[1]);
+            String fileName = contentDisposition.getFileName();
+            if (fileName != null) {
+                FileOutputStream fstream = new FileOutputStream(request.getAbsolutPath() + fileName);
+                data.writeTo(fstream);
+                fstream.close();
+            }
+        }
     }
 }

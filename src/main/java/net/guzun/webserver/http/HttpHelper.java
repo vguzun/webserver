@@ -14,7 +14,7 @@ public class HttpHelper {
      * @param responseCode the response code
      * @param contentType the content type
      */
-    public static void createHeader(PrintStream printStream, String responseCode, String contentType) {
+    public static void createResponseHeader(PrintStream printStream, String responseCode, String contentType) {
         printStream.println("HTTP/1.1 " + responseCode);
         printStream.println("Content-Type: " + contentType);
         printStream.println();
@@ -49,4 +49,20 @@ public class HttpHelper {
 
     }
 
+    /**
+     * Sends a redirect http code
+     * @param request request
+     * @param printStream stream to output
+     */
+    public static void createResponseRedirect(HttpRequest request, PrintStream printStream) {
+        printStream.println("HTTP/1.1 302 Moved Temporarily");
+        printStream.print("Location: ");
+
+        String host = request.getAttribute(HttpConstants.HOST_ATTRIBUTE);
+        if (host != null) {
+            printStream.print("http://" + host + "/");
+        }
+        printStream.println(request.getPath());
+        printStream.println();
+    }
 }

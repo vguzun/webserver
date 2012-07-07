@@ -20,14 +20,6 @@ public abstract class BaseProcessor implements RequestProcessor {
     }
 
     /**
-     * Instantiates a new base processor.
-     * @param nextProcessor the next processor
-     */
-    public BaseProcessor(RequestProcessor nextProcessor) {
-        this.setNextProcessor(nextProcessor);
-    }
-
-    /**
      * Invokes next processor if exists
      * @param request the request to process
      * @param response the respone to write

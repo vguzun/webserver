@@ -10,14 +10,6 @@ import net.guzun.webserver.http.HttpStreamReader;
  */
 public class HeaderProcessor extends BaseProcessor {
 
-    /**
-     * Instantiates a new header processor.
-     * @param nextProcessor the next processor
-     */
-    public HeaderProcessor(RequestProcessor nextProcessor) {
-        super(nextProcessor);
-    }
-
     /*
      * (non-Javadoc)
      * @see
@@ -32,8 +24,7 @@ public class HeaderProcessor extends BaseProcessor {
             String[] headers = headersString.split("\r\n");
             processHeadTitle(request, headers[0]);
 
-            // Iterating all header lines except the last, as it is an empty
-            // line
+            // Iterating all header linesa
             for (int i = 1; i < headers.length; i++) {
                 String line = headers[i];
                 if (!line.isEmpty()) {

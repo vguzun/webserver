@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
-import net.guzun.webserver.exceptions.RequestProcessingException;
 import net.guzun.webserver.processors.RequestProcessor;
 
 import org.apache.log4j.Logger;
@@ -46,9 +45,13 @@ public class HttpContext implements Runnable {
             InputStream inputStream = clientSocket.getInputStream();
             HttpRequest request = new HttpRequest(absolutePath, inputStream);
             HttpResponse response = new HttpResponse(outputStream);
-            requestProcessor.process(request, response);
-        } catch (RequestProcessingException e1) {
-            e1.printStackTrace();
+
+            try {
+                requestProcessor.process(request, response);
+            } catch (Exception ex) {
+                logger.error("An error occured during processing error");
+
+            }
         } catch (IOException e) {
             logger.error(e);
         } finally {

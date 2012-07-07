@@ -74,7 +74,7 @@ public class HeaderProcessorTest {
     @Before
     public void setUp() throws UnsupportedEncodingException {
         MockitoAnnotations.initMocks(this);
-        headerProcessor = new HeaderProcessor(null);
+        headerProcessor = new HeaderProcessor();
         simpleGetInputStream = new ByteArrayInputStream(getSimpleRequestString().getBytes("UTF-8"));
     }
 

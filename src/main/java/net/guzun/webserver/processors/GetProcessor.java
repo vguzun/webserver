@@ -26,13 +26,9 @@ public class GetProcessor extends BaseProcessor {
 
     /**
      * Instantiates a new gets the processor.
-     * @param nextProcessor
-     *            the next processor
-     * @param contentProviderFactoryParam
-     *            the content provider factory param
+     * @param contentProviderFactoryParam the content provider factory param
      */
-    public GetProcessor(RequestProcessor nextProcessor, ContentProviderFactory contentProviderFactoryParam) {
-        super(nextProcessor);
+    public GetProcessor(ContentProviderFactory contentProviderFactoryParam) {
         this.contentProviderFactory = contentProviderFactoryParam;
     }
 
@@ -80,9 +76,9 @@ public class GetProcessor extends BaseProcessor {
      */
     private void displayNotFound(OutputStream outputStream) {
         PrintStream printStream = new PrintStream(outputStream, true);
-        HttpHelper.createHeader(printStream, HttpConstants.HTTP_NOT_FOUND, "text/html");
+        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_NOT_FOUND, "text/html");
         HttpHelper.writeHtmHead(printStream);
-        printStream.print("Resource not found");
+        printStream.print("<h1> 404 Resource not found</h1>");
         HttpHelper.writeHtmTail(printStream);
     }
 
@@ -96,7 +92,7 @@ public class GetProcessor extends BaseProcessor {
             throws RequestProcessingException {
         PrintStream printStream = new PrintStream(outputStream, true);
         String contentType = contentProvider.getContentType();
-        HttpHelper.createHeader(printStream, HttpConstants.HTTP_OK, contentType);
+        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_OK, contentType);
         byte[] buffer = new byte[BUFFER_SIZE];
         int len;
         try {
@@ -122,9 +118,21 @@ public class GetProcessor extends BaseProcessor {
             boolean parentPathEnabled) {
         PrintStream printStream = new PrintStream(outputStream, true);
 
-        HttpHelper.createHeader(printStream, HttpConstants.HTTP_OK, "text/html");
+        HttpHelper.createResponseHeader(printStream, HttpConstants.HTTP_OK, "text/html");
+        StringBuilder html = buildBody(contentProvider, parentPathEnabled);
         HttpHelper.writeHtmHead(printStream);
+        HttpHelper.writeHtmTail(printStream);
+        printStream.print(html.toString());
+    }
 
+    /**
+     * Writes the response body.
+     *
+     * @param contentProvider the content provider
+     * @param parentPathEnabled the parent path enabled
+     * @return the string builder
+     */
+    private StringBuilder buildBody(ContentProvider contentProvider, boolean parentPathEnabled) {
         StringBuilder html = new StringBuilder();
         html.append("<ul id=\"folders\">");
 
@@ -142,12 +150,12 @@ public class GetProcessor extends BaseProcessor {
                 html.append(String.format("<li><a href=\"%1$s\">%1$s</a></li>", childContent.getName()));
             }
         }
+
         html.append("</ul>");
         html.append("<form action=\"#\" method=\"post\" enctype=\"multipart/form-data\">");
         html.append("<input type=\"file\" name=\"file\"/><br/>");
         html.append("<input type=\"submit\" name=\"submit\"/>");
         html.append("</form>");
-        HttpHelper.writeHtmTail(printStream);
-        printStream.print(html.toString());
+        return html;
     }
 }

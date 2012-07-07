@@ -28,20 +28,44 @@ public class WebServer implements Runnable {
     private int port;
     private String rootFolder;
     private volatile boolean isStarted;
-    private RequestProcessor requestProcessor = new HeaderProcessor(new PostMultiPartProcessor((new GetProcessor(
-            new DefaultProcessor(null), new ContentProviderFactory()))));
+    private RequestProcessor requestProcessor = null;
     private ExecutorService executor = Executors.newCachedThreadPool();
 
     /**
      * initialize web-server
      * @param listenPort pot to listen
-     * @param rootFolder folder to browse
+     * @param rootFolderPath folder to browse
      * @throws IOException exception
      */
-    public WebServer(String listenPort, String rootFolder) throws IOException {
+    public WebServer(String listenPort, String rootFolderPath) throws IOException {
+
+        ContentProviderFactory contentProviderFactory = new ContentProviderFactory();
+
+        HeaderProcessor headerProcessor = new HeaderProcessor();
+        GetProcessor getProcessor = new GetProcessor(contentProviderFactory);
+        PostMultiPartProcessor postMultiPartProcessor = new PostMultiPartProcessor();
+        DefaultProcessor defaultProcessor = new DefaultProcessor();
+
+        headerProcessor.setNextProcessor(getProcessor);
+        getProcessor.setNextProcessor(postMultiPartProcessor);
+        postMultiPartProcessor.setNextProcessor(defaultProcessor);
+
+        requestProcessor = headerProcessor;
+
+        init(listenPort, rootFolderPath);
+    }
+
+    /**
+     * Starts the web server.
+     *
+     * @param listenPort the listen port
+     * @param rootFolderPath the root folder path
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    private void init(String listenPort, String rootFolderPath) throws IOException {
         try {
-            this.port = Integer.parseInt(listenPort);
-            this.rootFolder = rootFolder;
+            port = Integer.parseInt(listenPort);
+            rootFolder = rootFolderPath;
             serverSocketChannel = ServerSocketChannel.open();
             serverSocketChannel.socket().bind(new InetSocketAddress(port));
             serverSocketChannel.configureBlocking(false);
