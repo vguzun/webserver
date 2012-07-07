@@ -25,6 +25,7 @@ public class Main {
     public static void main(String[] argv) {
         if (argv.length < 2) {
             System.out.println("Please provide port and path to the root folder.");
+            System.out.println("Eg: \"java -jar ./webserver-0.01-SNAPSHOT.jar 8000 /home/user\"");
             return;
         }
         WebServer webServer;
